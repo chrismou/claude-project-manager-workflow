@@ -1,0 +1,21 @@
+{
+  "name": "project-manager",
+  "version": "0.1.0",
+  "description": "End-to-end AI dev loop with architect, coder, QA, reviewer, and documenter agents orchestrated by a project manager command.",
+  "repository": "https://github.com/chrismou/claude-project-manager-workflow",
+  "license": "MIT",
+  "author": {
+    "name": "Chris Chrisostomou",
+    "url": "https://github.com/chrismou"
+  },
+  "keywords": ["project-management", "workflow", "agents", "dev-loop"],
+  "agents": [
+    "./agents/architect.md",
+    "./agents/architect-auto.md",
+    "./agents/coder.md",
+    "./agents/qa.md",
+    "./agents/reviewer.md",
+    "./agents/documenter.md"
+  ],
+  "commands": "./commands/"
+}
