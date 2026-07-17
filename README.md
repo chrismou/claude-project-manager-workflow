@@ -118,7 +118,10 @@ Or, to run planning in plan mode with auto-accept for the implementation stages:
 │   ├── project-manager.md
 │   └── project-manager-auto.md
 ├── plans/
-└── CHANGELOG.md
+├── .gitignore
+├── CHANGELOG.md
+├── LICENSE
+└── README.md
 ```
 
 ## License
