@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Plugin extracted into its own repository (`chrismou/claude-project-manager-workflow`); the marketplace (`chrismou/claude-plugins`) now references it with a github source.
-- Plugin renamed from `chrismou-claude-plugins` to `project-manager` — commands are now invoked as `/project-manager:project-manager` and `/project-manager:project-manager-auto`. Existing installs under the old name must be uninstalled and reinstalled.
+- Plugin renamed from `chrismou-claude-plugins` to `chrismou-project-manager` — commands are now invoked as `/chrismou-project-manager:project-manager` and `/chrismou-project-manager:project-manager-auto`. Existing installs under the old name must be uninstalled and reinstalled.
 
 ## [0.0.7] - 2026-07-15
 

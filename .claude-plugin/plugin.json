@@ -1,5 +1,5 @@
 {
-  "name": "project-manager",
+  "name": "chrismou-project-manager",
   "version": "0.1.0",
   "description": "End-to-end AI dev loop with architect, coder, QA, reviewer, and documenter agents orchestrated by a project manager command.",
   "repository": "https://github.com/chrismou/claude-project-manager-workflow",

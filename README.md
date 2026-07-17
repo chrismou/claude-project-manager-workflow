@@ -1,4 +1,4 @@
-# project-manager
+# chrismou-project-manager
 
 > **Note:** This plugin is currently in daily use and in active development/testing. The interface, agent prompts, and workflow structure may change before a 1.0.0 release. Use with that in mind.
 
@@ -6,7 +6,7 @@ A Claude Code plugin that implements an end-to-end AI dev loop, orchestrating a 
 
 ## What it does
 
-Running `/project-manager:project-manager <task description>` spins up a coordinated pipeline of agents:
+Running `/chrismou-project-manager:project-manager <task description>` spins up a coordinated pipeline of agents:
 
 1. **Architect** — analyses your codebase, writes a technical design doc to `plans/YYYYMMDD-slug.md`, then pauses so you can review and edit it before anything is touched.
 2. **Coder** — executes the plan precisely: creates/modifies files, runs syntax checks, and self-corrects minor blockers.
@@ -38,7 +38,7 @@ The plugin ships two commands that share the same five-agent pipeline:
 
 ```bash
 claude plugin marketplace add chrismou/claude-plugins
-claude plugin install project-manager@chrismou-claude-plugins
+claude plugin install chrismou-project-manager@chrismou-claude-plugins
 ```
 
 ### Option B: Install from source / local dev
@@ -53,19 +53,19 @@ claude plugin install ./claude-project-manager-workflow
 From within any Claude Code session in your project:
 
 ```
-/project-manager:project-manager <description of your task>
+/chrismou-project-manager:project-manager <description of your task>
 ```
 
 Or, to run planning in plan mode with auto-accept for the implementation stages:
 
 ```
-/project-manager:project-manager-auto <description of your task>
+/chrismou-project-manager:project-manager-auto <description of your task>
 ```
 
 **Example:**
 
 ```
-/project-manager:project-manager Add rate limiting to the public API endpoints
+/chrismou-project-manager:project-manager Add rate limiting to the public API endpoints
 ```
 
 ### What to expect (`project-manager`)
