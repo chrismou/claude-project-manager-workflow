@@ -39,6 +39,7 @@ The coder, qa-tester, and reviewer agents iterate among themselves. **Do NOT ask
 - **REVIEW:** On `STAGE_COMPLETE: qa`, immediately call 'reviewer' to audit for security/performance/style. (No user gate.)
   - If changes required — call 'coder' to apply them, then re-run 'qa-tester' and 'reviewer'. Repeat until `APPROVED`.
   - On `APPROVED` — Implement has converged.
+- **DISARM (conditional):** If you armed a permissionless flag file at the start of this session (i.e., this run was invoked via `project-manager-auto`) AND `UNATTENDED_SCOPE` is `"Implementation only"` or unset, delete it now: `rm -f "$(git rev-parse --show-toplevel)/.claude/.pm-permissionless.json"`. If no flag was armed in this session, skip this step entirely — no tool call, no output.
 - **GATE 2:** Present a summary of the full implementation (files changed, QA result, review result), then:
   - _(Note: Unattended phrasing alone NEVER authorizes skipping GATE 2 — only an explicit "Entire process" selection at the UNATTENDED-SCOPE GATE does.)_
   - If `UNATTENDED_SCOPE == "Entire process"` — record the GATE 2 summary and proceed automatically to Phase 3 (Document). **This is the only path that may auto-proceed past GATE 2.**
@@ -59,5 +60,6 @@ The coder, qa-tester, and reviewer agents iterate among themselves. **Do NOT ask
 ### Phase 3: Document
 
 - **DOCUMENTER:** Call 'documenter'. Wait for `STAGE_COMPLETE: documenter` in its response.
+- **DISARM (conditional):** If you armed a permissionless flag file at the start of this session AND `UNATTENDED_SCOPE == "Entire process"`, delete it now: `rm -f "$(git rev-parse --show-toplevel)/.claude/.pm-permissionless.json"`. If no flag was armed in this session, skip this step entirely — no tool call, no output.
 - **DONE:** "Pipeline complete. Documentation updated. Plan retained at [PLAN_PATH]."
 - Do NOT delete the plan file — retained for audit and version control.

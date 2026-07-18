@@ -1,0 +1,270 @@
+{
+  "rules": [
+    {
+      "id": "path-escape",
+      "tools": ["Edit", "Write", "NotebookEdit"],
+      "type": "boundary",
+      "category": "Path containment",
+      "what": "`Edit` / `Write` / `NotebookEdit` with a target outside the project root",
+      "why": "Prevents writes outside the project boundary. Unlike pattern-match rules this is a real boundary: the hook resolves symlinks and `..` before checking."
+    },
+    {
+      "id": "git-push",
+      "tools": ["Bash"],
+      "pattern": "\\bgit\\s+push\\b",
+      "category": "Outward publishing",
+      "what": "`git push`",
+      "why": "Pushes code off the machine; must stay a human decision."
+    },
+    {
+      "id": "git-remote",
+      "tools": ["Bash"],
+      "pattern": "\\bgit\\s+remote\\b",
+      "category": "Outward publishing",
+      "what": "`git remote`",
+      "why": "Modifies remote tracking configuration; must stay a human decision."
+    },
+    {
+      "id": "gh-pr-create",
+      "tools": ["Bash"],
+      "pattern": "\\bgh\\s+pr\\s+create\\b",
+      "category": "Outward publishing",
+      "what": "`gh pr create`",
+      "why": "Opens a pull request on GitHub; must stay a human decision."
+    },
+    {
+      "id": "gh-release",
+      "tools": ["Bash"],
+      "pattern": "\\bgh\\s+release\\b",
+      "category": "Outward publishing",
+      "what": "`gh release`",
+      "why": "Creates or manages GitHub releases; must stay a human decision."
+    },
+    {
+      "id": "registry-publish",
+      "tools": ["Bash"],
+      "pattern": "\\bnpm\\s+publish\\b|\\byarn\\s+publish\\b|\\bdocker\\s+push\\b|\\btwine\\s+upload\\b",
+      "category": "Outward publishing",
+      "what": "`npm publish` / `yarn publish` / `docker push` / `twine upload`",
+      "why": "Publishes artifacts to public registries — the package-ecosystem equivalent of `git push`; must stay a human decision."
+    },
+    {
+      "id": "git-reset-hard",
+      "tools": ["Bash"],
+      "pattern": "\\bgit\\s+reset\\s+--hard\\b",
+      "category": "Destructive git",
+      "what": "`git reset --hard`",
+      "why": "Irreversibly discards local changes; must stay a human decision."
+    },
+    {
+      "id": "git-clean",
+      "tools": ["Bash"],
+      "pattern": "\\bgit\\s+clean\\s+-[a-zA-Z]*f",
+      "category": "Destructive git",
+      "what": "`git clean -f` / `git clean -fd`",
+      "why": "Irreversibly deletes untracked files; must stay a human decision."
+    },
+    {
+      "id": "git-commit",
+      "tools": ["Bash"],
+      "pattern": "\\bgit\\s+commit\\b",
+      "category": "Destructive git",
+      "what": "`git commit`",
+      "why": "Commits are permanent history once pushed; matches the global preference that commits happen only when explicitly requested."
+    },
+    {
+      "id": "git-rebase",
+      "tools": ["Bash"],
+      "pattern": "\\bgit\\s+rebase\\b",
+      "category": "Destructive git",
+      "what": "`git rebase`",
+      "why": "Rewrites commit history; must stay a human decision."
+    },
+    {
+      "id": "rm-rf",
+      "tools": ["Bash"],
+      "pattern": "\\brm\\s+-[a-zA-Z]*r",
+      "category": "Filesystem",
+      "what": "`rm -r` / `rm -rf` / `rm -Rf`",
+      "why": "Recursive deletion is irreversible; must stay a human decision."
+    },
+    {
+      "id": "sudo",
+      "tools": ["Bash"],
+      "pattern": "\\bsudo\\b",
+      "category": "Privilege / system",
+      "what": "`sudo`",
+      "why": "Privilege escalation; must stay a human decision."
+    },
+    {
+      "id": "systemctl",
+      "tools": ["Bash"],
+      "pattern": "\\bsystemctl\\b",
+      "category": "Privilege / system",
+      "what": "`systemctl`",
+      "why": "Manages system services; must stay a human decision."
+    },
+    {
+      "id": "chmod",
+      "tools": ["Bash"],
+      "pattern": "\\bchmod\\b",
+      "category": "Privilege / system",
+      "what": "`chmod`",
+      "why": "Modifies file permissions; must stay a human decision."
+    },
+    {
+      "id": "chown",
+      "tools": ["Bash"],
+      "pattern": "\\bchown\\b",
+      "category": "Privilege / system",
+      "what": "`chown`",
+      "why": "Changes file ownership; must stay a human decision."
+    },
+    {
+      "id": "crontab",
+      "tools": ["Bash"],
+      "pattern": "\\bcrontab\\b",
+      "category": "Privilege / system",
+      "what": "`crontab`",
+      "why": "Installs or removes scheduled jobs — a persistence mechanism; must stay a human decision."
+    },
+    {
+      "id": "credentials-ssh",
+      "tools": ["Bash", "Read"],
+      "pattern": "~/.ssh|\\$HOME/.ssh|\\.ssh/",
+      "category": "Credentials / secrets",
+      "what": "Access to `~/.ssh`",
+      "why": "Protects SSH private keys from agent access. The `\\.ssh/` alternative catches absolute paths such as `/home/user/.ssh/id_rsa` that the Read tool always supplies."
+    },
+    {
+      "id": "credentials-aws",
+      "tools": ["Bash", "Read"],
+      "pattern": "~/.aws|\\$HOME/.aws|\\.aws/",
+      "category": "Credentials / secrets",
+      "what": "Access to `~/.aws`",
+      "why": "Protects AWS credentials from agent access. The `\\.aws/` alternative catches absolute paths such as `/home/user/.aws/credentials` that the Read tool always supplies."
+    },
+    {
+      "id": "credentials-env",
+      "tools": ["Bash", "Read"],
+      "pattern": "(\\.env$|\\.env\\.)",
+      "category": "Credentials / secrets",
+      "what": "`.env` / `.env.*` files",
+      "why": "Prevents accidental exposure of secrets stored in `.env` files."
+    },
+    {
+      "id": "gh-auth",
+      "tools": ["Bash"],
+      "pattern": "\\bgh\\s+auth\\b",
+      "category": "Credentials / secrets",
+      "what": "`gh auth`",
+      "why": "Manages GitHub authentication tokens; must stay a human decision."
+    },
+    {
+      "id": "pipe-to-shell",
+      "tools": ["Bash"],
+      "pattern": "(curl|wget)\\b.*\\|\\s*(ba)?sh\\b",
+      "category": "Network egress (exec)",
+      "what": "`curl … | sh` / `wget … | bash`",
+      "why": "Executes remotely fetched code; the most direct remote-code-execution vector in a shell pipeline."
+    },
+    {
+      "id": "remote-shell",
+      "tools": ["Bash"],
+      "pattern": "\\bssh\\b.*@|\\bscp\\b.*@.*:|\\brsync\\b.*@.*:",
+      "category": "Network egress (exec)",
+      "what": "`ssh user@host` / `scp user@host:path` / `rsync … user@host:path`",
+      "why": "Remote shell access and file transfer — vectors for both remote execution and data exfiltration; must stay a human decision."
+    },
+    {
+      "id": "terraform-apply",
+      "tools": ["Bash"],
+      "pattern": "\\bterraform\\s+apply\\b",
+      "category": "Deploy / infra",
+      "what": "`terraform apply`",
+      "why": "Mutates cloud infrastructure; must stay a human decision."
+    },
+    {
+      "id": "kubectl-mutate",
+      "tools": ["Bash"],
+      "pattern": "\\bkubectl\\s+(apply|delete)\\b",
+      "category": "Deploy / infra",
+      "what": "`kubectl apply` / `kubectl delete`",
+      "why": "Mutates Kubernetes resources; must stay a human decision."
+    },
+    {
+      "id": "docker-compose-down-v",
+      "tools": ["Bash"],
+      "pattern": "\\bdocker(-compose|\\s+compose)\\s+down\\b.*-v\\b",
+      "category": "Deploy / infra",
+      "what": "`docker compose down -v` / `docker-compose down -v`",
+      "why": "Destroys Docker volumes; must stay a human decision."
+    },
+    {
+      "id": "docker-system-prune",
+      "tools": ["Bash"],
+      "pattern": "\\bdocker\\s+system\\s+prune\\b",
+      "category": "Deploy / infra",
+      "what": "`docker system prune`",
+      "why": "Irreversibly removes Docker images, containers, and volumes; must stay a human decision."
+    },
+    {
+      "id": "cloud-mutate",
+      "tools": ["Bash"],
+      "pattern": "\\b(aws|gcloud|az)\\b.*(create|update|delete|deploy|apply|destroy|remove|\\brm\\b|put|set|push)\\b",
+      "category": "Deploy / infra",
+      "what": "Mutating `aws` / `gcloud` / `az` subcommands",
+      "why": "Mutates cloud resources; must stay a human decision."
+    },
+    {
+      "id": "eas-submit",
+      "tools": ["Bash"],
+      "pattern": "\\beas\\s+submit\\b",
+      "category": "Deploy / infra",
+      "what": "`eas submit`",
+      "why": "Submits a build to app stores; must stay a human decision."
+    },
+    {
+      "id": "npm-global",
+      "tools": ["Bash"],
+      "pattern": "\\bnpm\\s+(install|i)\\b[^|\\n]*-g\\b|\\bnpm\\s+-g\\s+(install|i)\\b",
+      "category": "Global package install",
+      "what": "`npm install -g` / `npm i -g`",
+      "why": "Installs packages globally. In-project `npm install` (without `-g`) is not matched and passes through."
+    },
+    {
+      "id": "pip-global",
+      "tools": ["Bash"],
+      "pattern": "\\bpip[23]?\\s+install\\b",
+      "unless": "(\\.venv|venv|env|virtualenv)/bin/pip[23]?",
+      "category": "Global package install",
+      "what": "`pip install` outside a recognised venv path",
+      "why": "Installs packages globally. `pip install` qualified with a venv-relative path (e.g. `.venv/bin/pip install`) is not matched. Note: an activated venv's bare `pip install` cannot be distinguished by path alone."
+    },
+    {
+      "id": "brew-install",
+      "tools": ["Bash"],
+      "pattern": "\\bbrew\\s+install\\b",
+      "category": "Global package install",
+      "what": "`brew install`",
+      "why": "Installs packages system-wide via Homebrew; must stay a human decision."
+    },
+    {
+      "id": "apt-install",
+      "tools": ["Bash"],
+      "pattern": "\\bapt(-get)?\\s+(install|upgrade|dist-upgrade)\\b",
+      "category": "Global package install",
+      "what": "`apt install` / `apt-get install`",
+      "why": "Installs system packages; must stay a human decision."
+    },
+    {
+      "id": "db-reset",
+      "tools": ["Bash"],
+      "pattern": "migrate:fresh|db:wipe|prisma\\s+migrate\\s+reset|DROP\\s+DATABASE",
+      "unless": "--env=testing|--database=testing|--env=test|APP_ENV=testing|php\\s+artisan\\s+test|\\bpest\\b|\\bphpunit\\b",
+      "category": "DB reset",
+      "what": "`migrate:fresh`, `db:wipe`, `prisma migrate reset`, `DROP DATABASE`",
+      "why": "Irreversibly wipes the database. Bare invocations prompt; test-environment markers (`--env=testing`, `APP_ENV=testing`, etc.) pass through automatically."
+    }
+  ]
+}
