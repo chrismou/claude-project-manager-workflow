@@ -100,7 +100,6 @@ Or, to run with auto-approved tool calls (except the deny list):
 5. The flag is deleted at the scope boundary (after Implementation for "Implementation only" scope, or after Documentation for "Entire process" scope).
 
 **Important limits:**
-
 - **Session-bound.** The flag stores your Claude Code session ID. The hook checks this on every tool call — a flag armed in one session is inert in every other session in the same project directory. Concurrent `project-manager-auto` runs in different sessions do not interfere.
 - A deny-list match in an unattended run **pauses indefinitely** — it does not fail or route around. The agent waits for you to return and confirm.
 - Existing `deny` or `ask` rules in your Claude Code settings are not affected — the hook cannot override them.
@@ -113,43 +112,41 @@ Or, to run with auto-approved tool calls (except the deny list):
 The following rules are evaluated on every tool call while `project-manager-auto` is armed. A match causes the tool call to prompt as normal. The rule ids are stable and are the public API for per-project overrides.
 
 <!-- deny-list-generated-start -->
-
-| Rule ID                 | Category               | What it matches                                                          | Why                                                                                                                                                                                                              |
-| ----------------------- | ---------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | ------------------------------------------------------------------------------------------------- |
-| `path-escape`           | Path containment       | `Edit` / `Write` / `NotebookEdit` with a target outside the project root | Prevents writes outside the project boundary. Unlike pattern-match rules this is a real boundary: the hook resolves symlinks and `..` before checking.                                                           |
-| `git-push`              | Outward publishing     | `git push`                                                               | Pushes code off the machine; must stay a human decision.                                                                                                                                                         |
-| `git-remote`            | Outward publishing     | `git remote`                                                             | Modifies remote tracking configuration; must stay a human decision.                                                                                                                                              |
-| `gh-pr-create`          | Outward publishing     | `gh pr create`                                                           | Opens a pull request on GitHub; must stay a human decision.                                                                                                                                                      |
-| `gh-release`            | Outward publishing     | `gh release`                                                             | Creates or manages GitHub releases; must stay a human decision.                                                                                                                                                  |
-| `registry-publish`      | Outward publishing     | `npm publish` / `yarn publish` / `docker push` / `twine upload`          | Publishes artifacts to public registries — the package-ecosystem equivalent of `git push`; must stay a human decision.                                                                                           |
-| `git-reset-hard`        | Destructive git        | `git reset --hard`                                                       | Irreversibly discards local changes; must stay a human decision.                                                                                                                                                 |
-| `git-clean`             | Destructive git        | `git clean -f` / `git clean -fd`                                         | Irreversibly deletes untracked files; must stay a human decision.                                                                                                                                                |
-| `git-commit`            | Destructive git        | `git commit`                                                             | Commits are permanent history once pushed; matches the global preference that commits happen only when explicitly requested.                                                                                     |
-| `git-rebase`            | Destructive git        | `git rebase`                                                             | Rewrites commit history; must stay a human decision.                                                                                                                                                             |
-| `rm-rf`                 | Filesystem             | `rm -r` / `rm -rf` / `rm -Rf`                                            | Recursive deletion is irreversible; must stay a human decision.                                                                                                                                                  |
-| `sudo`                  | Privilege / system     | `sudo`                                                                   | Privilege escalation; must stay a human decision.                                                                                                                                                                |
-| `systemctl`             | Privilege / system     | `systemctl`                                                              | Manages system services; must stay a human decision.                                                                                                                                                             |
-| `chmod`                 | Privilege / system     | `chmod`                                                                  | Modifies file permissions; must stay a human decision.                                                                                                                                                           |
-| `chown`                 | Privilege / system     | `chown`                                                                  | Changes file ownership; must stay a human decision.                                                                                                                                                              |
-| `crontab`               | Privilege / system     | `crontab`                                                                | Installs or removes scheduled jobs — a persistence mechanism; must stay a human decision.                                                                                                                        |
-| `credentials-ssh`       | Credentials / secrets  | Access to `~/.ssh`                                                       | Protects SSH private keys from agent access. The `\.ssh/` alternative catches absolute paths such as `/home/user/.ssh/id_rsa` that the Read tool always supplies.                                                |
-| `credentials-aws`       | Credentials / secrets  | Access to `~/.aws`                                                       | Protects AWS credentials from agent access. The `\.aws/` alternative catches absolute paths such as `/home/user/.aws/credentials` that the Read tool always supplies.                                            |
-| `credentials-env`       | Credentials / secrets  | `.env` / `.env.*` files                                                  | Prevents accidental exposure of secrets stored in `.env` files.                                                                                                                                                  |
-| `gh-auth`               | Credentials / secrets  | `gh auth`                                                                | Manages GitHub authentication tokens; must stay a human decision.                                                                                                                                                |
-| `pipe-to-shell`         | Network egress (exec)  | `curl …                                                                  | sh`/`wget …                                                                                                                                                                                                      | bash` | Executes remotely fetched code; the most direct remote-code-execution vector in a shell pipeline. |
-| `remote-shell`          | Network egress (exec)  | `ssh user@host` / `scp user@host:path` / `rsync … user@host:path`        | Remote shell access and file transfer — vectors for both remote execution and data exfiltration; must stay a human decision.                                                                                     |
-| `terraform-apply`       | Deploy / infra         | `terraform apply`                                                        | Mutates cloud infrastructure; must stay a human decision.                                                                                                                                                        |
-| `kubectl-mutate`        | Deploy / infra         | `kubectl apply` / `kubectl delete`                                       | Mutates Kubernetes resources; must stay a human decision.                                                                                                                                                        |
-| `docker-compose-down-v` | Deploy / infra         | `docker compose down -v` / `docker-compose down -v`                      | Destroys Docker volumes; must stay a human decision.                                                                                                                                                             |
-| `docker-system-prune`   | Deploy / infra         | `docker system prune`                                                    | Irreversibly removes Docker images, containers, and volumes; must stay a human decision.                                                                                                                         |
-| `cloud-mutate`          | Deploy / infra         | Mutating `aws` / `gcloud` / `az` subcommands                             | Mutates cloud resources; must stay a human decision.                                                                                                                                                             |
-| `eas-submit`            | Deploy / infra         | `eas submit`                                                             | Submits a build to app stores; must stay a human decision.                                                                                                                                                       |
-| `npm-global`            | Global package install | `npm install -g` / `npm i -g`                                            | Installs packages globally. In-project `npm install` (without `-g`) is not matched and passes through.                                                                                                           |
-| `pip-global`            | Global package install | `pip install` outside a recognised venv path                             | Installs packages globally. `pip install` qualified with a venv-relative path (e.g. `.venv/bin/pip install`) is not matched. Note: an activated venv's bare `pip install` cannot be distinguished by path alone. |
-| `brew-install`          | Global package install | `brew install`                                                           | Installs packages system-wide via Homebrew; must stay a human decision.                                                                                                                                          |
-| `apt-install`           | Global package install | `apt install` / `apt-get install`                                        | Installs system packages; must stay a human decision.                                                                                                                                                            |
-| `db-reset`              | DB reset               | `migrate:fresh`, `db:wipe`, `prisma migrate reset`, `DROP DATABASE`      | Irreversibly wipes the database. Bare invocations prompt; test-environment markers (`--env=testing`, `APP_ENV=testing`, etc.) pass through automatically.                                                        |
-
+| Rule ID | Category | What it matches | Why |
+| --- | --- | --- | --- |
+| `path-escape` | Path containment | `Edit` / `Write` / `NotebookEdit` with a target outside the project root | Prevents writes outside the project boundary. Unlike pattern-match rules this is a real boundary: the hook resolves symlinks and `..` before checking. |
+| `git-push` | Outward publishing | `git push` | Pushes code off the machine; must stay a human decision. |
+| `git-remote` | Outward publishing | `git remote` | Modifies remote tracking configuration; must stay a human decision. |
+| `gh-pr-create` | Outward publishing | `gh pr create` | Opens a pull request on GitHub; must stay a human decision. |
+| `gh-release` | Outward publishing | `gh release` | Creates or manages GitHub releases; must stay a human decision. |
+| `registry-publish` | Outward publishing | `npm publish` / `yarn publish` / `docker push` / `twine upload` | Publishes artifacts to public registries — the package-ecosystem equivalent of `git push`; must stay a human decision. |
+| `git-reset-hard` | Destructive git | `git reset --hard` | Irreversibly discards local changes; must stay a human decision. |
+| `git-clean` | Destructive git | `git clean -f` / `git clean -fd` | Irreversibly deletes untracked files; must stay a human decision. |
+| `git-commit` | Destructive git | `git commit` | Commits are permanent history once pushed; matches the global preference that commits happen only when explicitly requested. |
+| `git-rebase` | Destructive git | `git rebase` | Rewrites commit history; must stay a human decision. |
+| `rm-rf` | Filesystem | `rm -r` / `rm -rf` / `rm -Rf` | Recursive deletion is irreversible; must stay a human decision. |
+| `sudo` | Privilege / system | `sudo` | Privilege escalation; must stay a human decision. |
+| `systemctl` | Privilege / system | `systemctl` | Manages system services; must stay a human decision. |
+| `chmod` | Privilege / system | `chmod` | Modifies file permissions; must stay a human decision. |
+| `chown` | Privilege / system | `chown` | Changes file ownership; must stay a human decision. |
+| `crontab` | Privilege / system | `crontab` | Installs or removes scheduled jobs — a persistence mechanism; must stay a human decision. |
+| `credentials-ssh` | Credentials / secrets | Access to `~/.ssh` | Protects SSH private keys from agent access. The `\.ssh/` alternative catches absolute paths such as `/home/user/.ssh/id_rsa` that the Read tool always supplies. |
+| `credentials-aws` | Credentials / secrets | Access to `~/.aws` | Protects AWS credentials from agent access. The `\.aws/` alternative catches absolute paths such as `/home/user/.aws/credentials` that the Read tool always supplies. |
+| `credentials-env` | Credentials / secrets | `.env` / `.env.*` files | Prevents accidental exposure of secrets stored in `.env` files. |
+| `gh-auth` | Credentials / secrets | `gh auth` | Manages GitHub authentication tokens; must stay a human decision. |
+| `pipe-to-shell` | Network egress (exec) | `curl … | sh` / `wget … | bash` | Executes remotely fetched code; the most direct remote-code-execution vector in a shell pipeline. |
+| `remote-shell` | Network egress (exec) | `ssh user@host` / `scp user@host:path` / `rsync … user@host:path` | Remote shell access and file transfer — vectors for both remote execution and data exfiltration; must stay a human decision. |
+| `terraform-apply` | Deploy / infra | `terraform apply` | Mutates cloud infrastructure; must stay a human decision. |
+| `kubectl-mutate` | Deploy / infra | `kubectl apply` / `kubectl delete` | Mutates Kubernetes resources; must stay a human decision. |
+| `docker-compose-down-v` | Deploy / infra | `docker compose down -v` / `docker-compose down -v` | Destroys Docker volumes; must stay a human decision. |
+| `docker-system-prune` | Deploy / infra | `docker system prune` | Irreversibly removes Docker images, containers, and volumes; must stay a human decision. |
+| `cloud-mutate` | Deploy / infra | Mutating `aws` / `gcloud` / `az` subcommands | Mutates cloud resources; must stay a human decision. |
+| `eas-submit` | Deploy / infra | `eas submit` | Submits a build to app stores; must stay a human decision. |
+| `npm-global` | Global package install | `npm install -g` / `npm i -g` | Installs packages globally. In-project `npm install` (without `-g`) is not matched and passes through. |
+| `pip-global` | Global package install | `pip install` outside a recognised venv path | Installs packages globally. `pip install` qualified with a venv-relative path (e.g. `.venv/bin/pip install`) is not matched. Note: an activated venv's bare `pip install` cannot be distinguished by path alone. |
+| `brew-install` | Global package install | `brew install` | Installs packages system-wide via Homebrew; must stay a human decision. |
+| `apt-install` | Global package install | `apt install` / `apt-get install` | Installs system packages; must stay a human decision. |
+| `db-reset` | DB reset | `migrate:fresh`, `db:wipe`, `prisma migrate reset`, `DROP DATABASE` | Irreversibly wipes the database. Bare invocations prompt; test-environment markers (`--env=testing`, `APP_ENV=testing`, etc.) pass through automatically. |
 <!-- deny-list-generated-end -->
 
 **Deliberately not denied:** `kill`/`pkill`, backgrounding dev servers, local git read/branch/checkout/stash, in-project `npm install` / `composer install` / `yarn add`, WebFetch (read-only; egress risk is the pipe-to-shell rule above).
@@ -223,7 +220,7 @@ Adds a new pattern-match rule on top of the shipped list. The `id` field is for 
 2. Project `add` rules are then evaluated. They cannot be exempted.
 3. **Any surviving match prompts.** Exempting never forces an allow — it only withdraws a shipped rule. If a project `add` rule and an exempted shipped rule both match the same command, the `add` rule wins.
 
-In one sentence: _an exemption can only ever remove a shipped rule, never override a rule that still matches._
+In one sentence: *an exemption can only ever remove a shipped rule, never override a rule that still matches.*
 
 ### `path-escape` exemption — double opt-in required
 
@@ -267,13 +264,13 @@ If you want to add an additional project-specific guard on a deployment script:
 
 ## Agents
 
-| Agent      | Model             | Role                                                                     |
-| ---------- | ----------------- | ------------------------------------------------------------------------ |
-| architect  | claude-opus-4-8   | Writes technical design docs, surfaces clarifications and open questions |
-| coder      | claude-sonnet-4-6 | Implements the plan                                                      |
-| qa-tester  | claude-sonnet-4-6 | Tests for bugs, edge cases, coverage gaps                                |
-| reviewer   | claude-sonnet-4-6 | Security, performance, and style audit                                   |
-| documenter | claude-haiku-4-5  | Updates docs and CHANGELOG                                               |
+| Agent      | Model             | Role                                                                         |
+| ---------- | ----------------- | ---------------------------------------------------------------------------- |
+| architect  | claude-opus-4-8   | Writes technical design docs, surfaces clarifications and open questions      |
+| coder      | claude-sonnet-4-6 | Implements the plan                                                          |
+| qa-tester  | claude-sonnet-4-6 | Tests for bugs, edge cases, coverage gaps                                    |
+| reviewer   | claude-sonnet-4-6 | Security, performance, and style audit                                       |
+| documenter | claude-haiku-4-5  | Updates docs and CHANGELOG                                                   |
 
 ## Project structure
 
