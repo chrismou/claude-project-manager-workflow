@@ -1,0 +1,35 @@
+name: check-readme
+
+# Fails if README.md is out of sync with hooks/deny-list.json.
+# Run generate-readme-section.sh locally to regenerate before opening a PR.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'hooks/deny-list.json'
+      - 'README.md'
+      - 'hooks/generate-readme-section.sh'
+
+jobs:
+  deny-list-readme-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out PR
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Regenerate README deny-list section
+        run: bash hooks/generate-readme-section.sh
+
+      - name: Fail if README changed (section was out of sync)
+        run: |
+          if ! git diff --quiet README.md; then
+            echo "::error::README.md deny-list section is out of sync with hooks/deny-list.json."
+            echo "Run 'bash hooks/generate-readme-section.sh' locally and commit the result."
+            git diff README.md
+            exit 1
+          fi
+          echo "OK: README.md deny-list section is up to date."

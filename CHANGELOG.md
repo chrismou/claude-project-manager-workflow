@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-07-18
+
+### Breaking Changes
+
+- **`project-manager-auto` semantics replaced.** The previous plan-mode flow — where planning ran inside Claude Code's plan mode and exiting offered "auto-accept edits" — is removed entirely. `project-manager-auto` is now a thin wrapper that arms a session-bound `PreToolUse` hook, then invokes the standard `project-manager` pipeline. Permission posture (auto-approve vs. prompt) is chosen at invocation time. The gate structure, agent roster, and unattended-scope selection are unchanged — only the permission mechanism differs.
+- **`architect-auto` agent removed.** It was used exclusively by the old plan-mode `-auto` flow and has no other consumers.
+
+### Added
+
+- `PreToolUse` hook (`hooks/permissionless-gate.sh`) — evaluates every tool call while a permissionless flag is armed. Session-bound (2-hour TTL), fails closed on any error. Deny-list matches prompt as normal; they do not hard-block.
+- `hooks/deny-list.json` — single source of truth for deny rules. Each rule carries a stable `id`, `category`, `what`, and `why`. Ids are the public API for per-project overrides and are never renamed or reused.
+- Per-project overrides (`.claude/pm-deny-overrides.json`) — projects can exempt shipped rules by id, add project-specific pattern rules, or double-opt-in to exempting `path-escape` via `acknowledge_unsafe`.
+- `SessionStart` / `SessionEnd` hook cleanup (`hooks/session-cleanup.sh`) — stale flag files from crashed or expired sessions are removed automatically at session boundaries.
+- `hooks/generate-readme-section.sh` — regenerates the deny-list table in `README.md` from `deny-list.json`; run by CI to keep docs and rules in sync.
+- `.github/workflows/check-readme.yml` — CI job that fails if `README.md` is out of sync with `deny-list.json`.
+- README: "Two ways to run it" rewritten to document the new `-auto` semantics; deny-list section (generated from `hooks/deny-list.json`); per-project overrides section with worked examples, precedence rules, and `path-escape` / `acknowledge_unsafe` caveat.
+- Flag file (`.claude/.pm-permissionless.json`) added to `.gitignore`.
+
 ## [0.1.0] - 2026-07-16
 
 ### Changed
