@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# permissionless-gate.sh — PreToolUse hook for project-manager-auto
+# permissionless-gate.sh — PreToolUse hook for pm-auto
 #
 # Performance targets (<200ms per call):
 #   - No overrides case: 3 jq calls (stdin+subject, flag, deny-rules).

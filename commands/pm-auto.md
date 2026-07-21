@@ -1,6 +1,6 @@
 ---
-name: project-manager-auto
-description: End-to-End Dev Loop (permissionless — auto-approves tool calls except the deny list)
+name: pm-auto
+description: Auto-approving dev loop (dangerous ops still prompt)
 ---
 
 # Task: $ARGUMENTS
@@ -52,7 +52,7 @@ Write `<project_root>/.claude/.pm-permissionless.json`:
   "session_id": "<SESSION_UUID>",
   "armed_at":   "<ARMED_AT>",
   "expires_at": "<EXPIRES_AT>",
-  "command":    "project-manager-auto"
+  "command":    "pm-auto"
 }
 ```
 
@@ -71,7 +71,7 @@ Confirm to the user:
 
 ## Pipeline
 
-Invoke the `chrismou-project-manager:project-manager` skill with `$ARGUMENTS` and follow it in
+Invoke the `chrismou-project-manager:pm` skill with `$ARGUMENTS` and follow it in
 full. Do not restate or reinterpret the pipeline — it is defined there.
 
 ## DISARM
