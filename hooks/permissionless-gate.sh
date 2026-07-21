@@ -25,7 +25,7 @@ trap 'exit 0' ERR PIPE
 if [ -n "${BASH_SOURCE[0]:-}" ]; then
     SCRIPT_DIR="$(cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")" 2>/dev/null && pwd)" || SCRIPT_DIR=""
 fi
-[ -z "${SCRIPT_DIR:-}" ] && SCRIPT_DIR="${CLAUDE_PLUGIN_DIR:+${CLAUDE_PLUGIN_DIR}/hooks}"
+[ -z "${SCRIPT_DIR:-}" ] && SCRIPT_DIR="${CLAUDE_PLUGIN_ROOT:+${CLAUDE_PLUGIN_ROOT}/hooks}"
 [ -z "${SCRIPT_DIR:-}" ] && exit 0
 
 command -v jq &>/dev/null || { echo "permissionless-gate: jq not available, failing closed" >&2; exit 0; }
