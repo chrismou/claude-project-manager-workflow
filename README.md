@@ -6,7 +6,7 @@ A Claude Code plugin that implements an end-to-end AI dev loop, orchestrating a 
 
 ## What it does
 
-Running `/chrismou-project-manager:pm <task description>` spins up a coordinated pipeline of agents:
+Running `/chrismou-project-manager:project-manager <task description>` spins up a coordinated pipeline of agents:
 
 1. **Architect** — analyses your codebase, writes a technical design doc to `plans/YYYYMMDD-slug.md`, then pauses so you can review and edit it before anything is touched.
 2. **Coder** — executes the plan precisely: creates/modifies files, runs syntax checks, and self-corrects minor blockers.
@@ -25,21 +25,21 @@ Plan files are never deleted — they're kept in `plans/` for audit and version 
 
 The plugin ships two commands that share the same five-agent pipeline:
 
-- **`pm`** — the standard flow. The Architect analyses your project and surfaces any clarification questions you need to answer before coding starts. After you review/edit the plan, implementation runs through a 3-phase pipeline: Plan (with clarification gating), Implement (Code + QA + Review iterate automatically), then Document. Two user confirmation gates: after planning and after implementation converges.
-- **`pm-auto`** — the same pipeline, but armed with a `PreToolUse` hook that auto-approves tool calls. Permission posture is chosen at invocation time. The deny list (see below) still applies — any matched tool call prompts as normal rather than being auto-approved.
+- **`project-manager`** — the standard flow. The Architect analyses your project and surfaces any clarification questions you need to answer before coding starts. After you review/edit the plan, implementation runs through a 3-phase pipeline: Plan (with clarification gating), Implement (Code + QA + Review iterate automatically), then Document. Two user confirmation gates: after planning and after implementation converges.
+- **`project-manager-auto`** — the same pipeline, but armed with a `PreToolUse` hook that auto-approves tool calls. Permission posture is chosen at invocation time. The deny list (see below) still applies — any matched tool call prompts as normal rather than being auto-approved.
 
 The commands are behaviourally identical in every other way. Gate structure, clarification handling, agent roster, and unattended-scope selection are the same. The only difference is whether you are present for each tool call.
 
-### Why wouldn't I just enable `auto mode` on the `/pm` command?
+### Why wouldn't I just enable `auto mode` on the `/project-manager` command?
 
 Good question, and actually you still can if you're happy to let Claude do just about anything/everything it needs to without you needing to OK anything. But personally that was a little _too_ auto for me, I've had some issues in the past that have led to the dreaded "that's on me" Claude apology while I'm looking for a database backup to replace the local one it dropped.
 
-`/pm-auto` gates destructive commands, especially irreversible commands, like `rm -rf`. It also prompts for certain `git` commands - `rebase`, `commit`, etc. Full list is below. So effectively, the command exists to provide auto mode, but with extra caution.
+`/project-manager-auto` gates destructive commands, especially irreversible commands, like `rm -rf`. It also prompts for certain `git` commands - `rebase`, `commit`, etc. Full list is below. So effectively, the command exists to provide auto mode, but with extra caution.
 
 ## Requirements
 
 - [Claude Code](https://claude.ai/code) with plugin support enabled
-- `jq` installed (required for `pm-auto`; `brew install jq` / `apt install jq`)
+- `jq` installed (required for `project-manager-auto`; `brew install jq` / `apt install jq`)
 
 ## Installation
 
@@ -62,22 +62,22 @@ claude plugin install ./claude-project-manager-workflow
 From within any Claude Code session in your project:
 
 ```
-/chrismou-project-manager:pm <description of your task>
+/chrismou-project-manager:project-manager <description of your task>
 ```
 
 Or, to run with auto-approved tool calls (except the deny list):
 
 ```
-/chrismou-project-manager:pm-auto <description of your task>
+/chrismou-project-manager:project-manager-auto <description of your task>
 ```
 
 **Example:**
 
 ```
-/chrismou-project-manager:pm Add rate limiting to the public API endpoints
+/chrismou-project-manager:project-manager Add rate limiting to the public API endpoints
 ```
 
-### What to expect (`pm`)
+### What to expect (`project-manager`)
 
 1. The Architect analyses your project and writes a plan to `plans/YYYYMMDD-slug.md`, surfacing any clarification questions (assumptions, open decisions, edge cases) that need resolution before implementation. You'll see the plan path printed.
 2. Open the plan file, review it, and make any edits you want. Answer any clarification questions the Architect raises.
@@ -89,9 +89,9 @@ Or, to run with auto-approved tool calls (except the deny list):
 5. You'll be asked to confirm once the implementation is complete and all stages have converged (unless "Entire process" was selected). Type `Yes` to proceed to documentation, or `No` to provide feedback and restart planning.
 6. Documentation is updated and the plan is retained in `plans/` for audit.
 
-### What to expect (`pm-auto`)
+### What to expect (`project-manager-auto`)
 
-`pm-auto` is a thin wrapper: it arms a `PreToolUse` hook, then invokes the standard `pm` pipeline. The pipeline steps are identical to those above.
+`project-manager-auto` is a thin wrapper: it arms a `PreToolUse` hook, then invokes the standard `project-manager` pipeline. The pipeline steps are identical to those above.
 
 1. The command checks for `jq` and validates any per-project overrides file.
 2. It reads `$CLAUDE_CODE_SESSION_ID` and writes it to `.claude/.pm-permissionless.json`. This write prompts once; you are present.
@@ -100,7 +100,7 @@ Or, to run with auto-approved tool calls (except the deny list):
 5. The flag is deleted at the scope boundary (after Implementation for "Implementation only" scope, or after Documentation for "Entire process" scope).
 
 **Important limits:**
-- **Session-bound.** The flag stores your Claude Code session ID. The hook checks this on every tool call — a flag armed in one session is inert in every other session in the same project directory. Concurrent `pm-auto` runs in different sessions do not interfere.
+- **Session-bound.** The flag stores your Claude Code session ID. The hook checks this on every tool call — a flag armed in one session is inert in every other session in the same project directory. Concurrent `project-manager-auto` runs in different sessions do not interfere.
 - A deny-list match in an unattended run **pauses indefinitely** — it does not fail or route around. The agent waits for you to return and confirm.
 - Existing `deny` or `ask` rules in your Claude Code settings are not affected — the hook cannot override them.
 - The flag has a 2-hour TTL. A run longer than 2 hours will silently revert to normal prompting.
@@ -109,7 +109,7 @@ Or, to run with auto-approved tool calls (except the deny list):
 
 > **Note:** Bash deny-listing is pattern matching — a speed bump against careless agent behaviour, not containment. It is trivially evaded by wrapper scripts, compound commands, indirection, and subprocesses that do the same work via a language runtime. The only genuinely enforced rule is `path-escape`, which resolves and boundary-checks rather than pattern-matches. For real containment, use OS-level sandboxing. Do not treat the deny list as a security boundary.
 
-The following rules are evaluated on every tool call while `pm-auto` is armed. A match causes the tool call to prompt as normal. The rule ids are stable and are the public API for per-project overrides.
+The following rules are evaluated on every tool call while `project-manager-auto` is armed. A match causes the tool call to prompt as normal. The rule ids are stable and are the public API for per-project overrides.
 
 <!-- deny-list-generated-start -->
 | Rule ID | Category | What it matches | Why |
@@ -194,7 +194,7 @@ Removes the `git-commit` rule from evaluation. `git commit` will be auto-approve
 
 Use the **Rule ID** column in the deny list above — ids are stable and are never renamed or reused.
 
-**Unknown ids are a loud no-op.** The hook writes a warning to stderr, and the `pm-auto` arming step reports them before the pipeline starts so you catch typos immediately.
+**Unknown ids are a loud no-op.** The hook writes a warning to stderr, and the `project-manager-auto` arming step reports them before the pipeline starts so you catch typos immediately.
 
 ### `add` — project-specific deny rules
 
@@ -288,8 +288,8 @@ If you want to add an additional project-specific guard on a deployment script:
 │   ├── reviewer.md
 │   └── documenter.md
 ├── commands/
-│   ├── pm.md
-│   └── pm-auto.md
+│   ├── project-manager.md
+│   └── project-manager-auto.md
 ├── hooks/
 │   ├── deny-list.json
 │   ├── generate-readme-section.sh
