@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_DIR}/hooks/permissionless-gate.sh\""
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/permissionless-gate.sh\""
           }
         ]
       }
@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_DIR}/hooks/session-cleanup.sh\" start"
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/session-cleanup.sh\" start"
           }
         ]
       }
@@ -26,7 +26,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_DIR}/hooks/session-cleanup.sh\" end"
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/session-cleanup.sh\" end"
           }
         ]
       }

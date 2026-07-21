@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-07-21
+
+### Fixed
+
+- Hooks were registered with `${CLAUDE_PLUGIN_DIR}`, which Claude Code does not set. The correct variable is `${CLAUDE_PLUGIN_ROOT}`. The unset variable expanded to an empty string, so every hook command resolved to a bare `/hooks/...` path and failed with `No such file or directory`. Two consequences: permissionless mode never actually engaged (the `PreToolUse` gate could not run, so `project-manager-auto` prompted on every tool call despite arming the flag), and because the `PreToolUse` matcher is `*`, every session in every project emitted a hook error on each tool call. `SessionStart` / `SessionEnd` flag cleanup was also silently dead, leaving stale `.pm-permissionless.json` files behind. Fixed in `hooks/hooks.json` (3 command paths) and the `SCRIPT_DIR` fallback in `hooks/permissionless-gate.sh`. No logic changed — the gate script was correct all along; only its registration was broken.
+
 ## [0.2.0] - 2026-07-18
 
 ### Breaking Changes
