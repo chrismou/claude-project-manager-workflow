@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# session-cleanup.sh — SessionStart / SessionEnd cleanup for project-manager-auto
+# session-cleanup.sh — SessionStart / SessionEnd cleanup for pm-auto
 #
 # SessionStart: remove the flag if it is orphaned (PENDING / empty session_id)
 #   or expired.  Non-expired flags belonging to another live session are left

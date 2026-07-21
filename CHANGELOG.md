@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-07-21
+
+### Breaking Changes
+
+- **Commands renamed.** `project-manager` → `pm`, `project-manager-auto` → `pm-auto`. Invoke them
+  as `/chrismou-project-manager:pm` and `/chrismou-project-manager:pm-auto`. The old names are
+  gone — there are no aliases. The plugin name is unchanged, so no reinstall is required; only the
+  command you type changes. Rationale: the slash-command picker prints the command name twice in a
+  fixed-width column, so `<plugin>:<command> (<command>)` truncated on standard-width terminals.
+  Behaviour, gates, agent roster, deny list, and hook mechanics are unchanged.
+
+### Changed
+
+- Command descriptions shortened so the picker line fits alongside the shorter names. `pm` is
+  "Interactive dev loop (Plan > Code > QA > Review > Docs)" and `pm-auto` is "Auto-approving dev
+  loop (dangerous ops still prompt)". Full permissionless semantics remain documented in the
+  README.
+
 ## [0.2.1] - 2026-07-21
 
 ### Fixed
