@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] - 2026-07-28
+
+### Fixed
+
+- Plugin failed to load its hooks on Claude Code 2.1.x with `Duplicate hooks file detected`. The
+  manifest declared `"hooks": "./hooks/hooks.json"`, but Claude Code already auto-loads the
+  standard `hooks/hooks.json` from the plugin root; the manifest key is only for *additional*
+  hook files. The redundant declaration made the loader resolve the same absolute path twice and
+  abort, so the `PreToolUse` permissionless gate and the `SessionStart` / `SessionEnd` flag
+  cleanup were not registered at all. Removed the key from `.claude-plugin/plugin.json`. Hook
+  behaviour is otherwise unchanged. The key had been redundant since 0.2.0; only recent Claude
+  Code versions treat it as an error.
+
+### Changed
+
+- `.claude-plugin/plugin.json` no longer declares `agents` or `commands` either. Both were
+  redundant with Claude Code's standard-directory auto-discovery of `agents/` and `commands/`,
+  and unlike `hooks` they were tolerated rather than rejected. The manifest is now metadata only.
+  No agent, command, or hook was added, removed, or renamed.
+
 ## [0.3.1] - 2026-07-27
 
 ### Changed
