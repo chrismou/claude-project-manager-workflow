@@ -266,7 +266,7 @@ If you want to add an additional project-specific guard on a deployment script:
 
 | Agent      | Model             | Role                                                                         |
 | ---------- | ----------------- | ---------------------------------------------------------------------------- |
-| architect  | claude-opus-4-8   | Writes technical design docs, surfaces clarifications and open questions      |
+| architect  | claude-opus-5     | Writes technical design docs, surfaces clarifications and open questions      |
 | coder      | claude-sonnet-4-6 | Implements the plan                                                          |
 | qa-tester  | claude-sonnet-4-6 | Tests for bugs, edge cases, coverage gaps                                    |
 | reviewer   | claude-sonnet-4-6 | Security, performance, and style audit                                       |
