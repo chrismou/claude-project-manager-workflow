@@ -68,11 +68,18 @@ Confirm to the user:
 >   rules will NOT fire during this run. (Omit this bullet if ACTIVE_EXEMPTIONS is empty.)
 > - Existing `deny` / `ask` rules in your settings still apply — the hook cannot override them.
 > - A deny-list match in an unattended run **pauses indefinitely** rather than failing.
+> - If `--complex` was passed, the architect will run on Fable 5. Fable is entitlement- and
+>   credit-gated. If it is unavailable or out of credits in this unattended run, the pipeline
+>   will abort and disarm permissionless mode automatically rather than waiting for input.
 
 ## Pipeline
 
 Invoke the `chrismou-project-manager:pm` skill with `$ARGUMENTS` and follow it in
 full. Do not restate or reinterpret the pipeline — it is defined there.
+
+If `$ARGUMENTS` begins with `--complex`, the flag is forwarded to the `pm` pipeline, which parses
+and consumes it there. No separate handling is needed here — the flag never reaches the ARM step
+and never becomes part of the task description.
 
 ## DISARM
 
