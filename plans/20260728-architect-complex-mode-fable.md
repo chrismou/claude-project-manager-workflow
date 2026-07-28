@@ -2,6 +2,10 @@
 
 Date: 2026-07-28
 Status: **Ready for implementation** — all clarifications resolved
+Revision: 3 (closes §9-predicted failure-branch reachability gap: §5.4 scope clause now explicitly
+covers every ARCHITECT invocation including clarification re-runs and loop-backs, matching the
+stickiness language already in §5.3; Revision 2 text below)
+
 Revision: 2 (incorporates user decisions on scope, trigger syntax, Fable-failure policy, and
 version target; folds the branch-base and stale-branch housekeeping into §5.5/§5.6 as real steps;
 adds §8, a verified method for proving which model actually ran)
@@ -322,7 +326,7 @@ Add immediately after the ARCHITECT bullet in Phase 1. This is the safety-releva
 change and must be implemented as written.
 
 ```md
-- **COMPLEX-MODE FAILURE HANDLING** _(applies only when `COMPLEX_MODE` is true):_
+- **COMPLEX-MODE FAILURE HANDLING** _(applies only when `COMPLEX_MODE` is true, on every ARCHITECT invocation including clarification re-runs and loop-backs):_
   Fable 5 is entitlement- and credit-gated. The architect call may fail, stall on a consent
   prompt, or report that Fable is unavailable or out of credits. If that happens:
 

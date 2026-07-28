@@ -45,7 +45,7 @@ You are running a 3-phase pipeline (5 underlying agents). Complete every phase i
   - If `COMPLEX_MODE` is true, pass the Agent tool's `model` parameter as `fable` on this call.
   - If `COMPLEX_MODE` is false, omit the `model` parameter entirely so the architect runs on its definition default (`claude-opus-4-8`). Do not pass `opus` — the alias is not version-pinned.
   - This applies to **every** ARCHITECT invocation in the session, including clarification re-runs and loop-backs from GATE 1 / GATE 2. `COMPLEX_MODE` is sticky once set.
-- **COMPLEX-MODE FAILURE HANDLING** _(applies only when `COMPLEX_MODE` is true):_
+- **COMPLEX-MODE FAILURE HANDLING** _(applies only when `COMPLEX_MODE` is true, on every ARCHITECT invocation including clarification re-runs and loop-backs):_
   Fable 5 is entitlement- and credit-gated. The architect call may fail, stall on a consent
   prompt, or report that Fable is unavailable or out of credits. If that happens:
 
