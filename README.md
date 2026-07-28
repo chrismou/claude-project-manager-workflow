@@ -105,6 +105,30 @@ Or, to run with auto-approved tool calls (except the deny list):
 - Existing `deny` or `ask` rules in your Claude Code settings are not affected — the hook cannot override them.
 - The flag has a 2-hour TTL. A run longer than 2 hours will silently revert to normal prompting.
 
+### Complex mode
+
+Both commands accept a `--complex` flag as the first argument, which escalates the Architect agent to Fable 5 for deeper analysis on demanding tasks. All other agents are unchanged.
+
+```
+/chrismou-project-manager:pm --complex <description of your task>
+/chrismou-project-manager:pm-auto --complex <description of your task>
+```
+
+The flag must be the first token on the command line, exact and case-sensitive. A task starting with the ordinary word "complex" (e.g. "complex refactor of the auth module") is not affected — only the literal `--complex` prefix activates the mode.
+
+When active, the orchestrator announces "Complex mode: the architect will run on Fable 5" before Phase 1 starts, and passes `model: fable` on every Architect call for the session. The mode is sticky — once set, it applies to all Architect re-runs including clarification loops and gate-loopbacks.
+
+**Runtime escalation:** If you start without `--complex` and then decide at GATE 1 or GATE 2 that you want a deeper plan, say so in your feedback. The orchestrator will switch to Fable for subsequent Architect runs.
+
+**Fable availability:**
+
+Fable 5 is entitlement- and credit-gated. If the Architect call fails or a consent prompt appears:
+
+- **`pm` (attended):** The pipeline pauses and reports what happened. Reply `Retry` to try Fable again, or `Standard` to continue on Opus 4.8.
+- **`pm-auto` (unattended):** The pipeline aborts and disarms permissionless mode immediately. Re-run without `--complex` or resolve Fable availability first.
+
+**Verification note:** The model override fails silently — if it does not take, the Architect runs on Opus 4.8 and produces a perfectly good plan, indistinguishable at a glance. The "Complex mode: …" announcement reports intent, not outcome. To verify which model actually ran, check the per-session transcript sidecars: `~/.claude/projects/<project-slug>/<session-id>/subagents/agent-*.jsonl`. Each assistant entry records `.message.model`. This is an internal format verified against Claude Code 2.1.220 only and should be used for post-hoc QA, not as an in-run indicator.
+
 ## Permissionless mode deny list
 
 > **Note:** Bash deny-listing is pattern matching — a speed bump against careless agent behaviour, not containment. It is trivially evaded by wrapper scripts, compound commands, indirection, and subprocesses that do the same work via a language runtime. The only genuinely enforced rule is `path-escape`, which resolves and boundary-checks rather than pattern-matches. For real containment, use OS-level sandboxing. Do not treat the deny list as a security boundary.
@@ -266,7 +290,7 @@ If you want to add an additional project-specific guard on a deployment script:
 
 | Agent      | Model             | Role                                                                         |
 | ---------- | ----------------- | ---------------------------------------------------------------------------- |
-| architect  | claude-opus-5     | Writes technical design docs, surfaces clarifications and open questions      |
+| architect  | claude-opus-4-8   | Writes technical design docs, surfaces clarifications and open questions      |
 | coder      | claude-sonnet-4-6 | Implements the plan                                                          |
 | qa-tester  | claude-sonnet-4-6 | Tests for bugs, edge cases, coverage gaps                                    |
 | reviewer   | claude-sonnet-4-6 | Security, performance, and style audit                                       |
