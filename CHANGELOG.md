@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-07-28
+
+### Added
+
+- **Complex mode** — pass `--complex` as the first argument to either `/pm` or `/pm-auto` to
+  escalate the Architect agent to Fable 5 for deeper analysis on demanding tasks. Example:
+  `/chrismou-project-manager:pm --complex Rebuild the authentication layer`. The flag is
+  exact and case-sensitive (`--Complex` and `complex` alone do not activate it); a task
+  starting with the ordinary word "complex" is unaffected. The mode is sticky within a
+  session — once set, all Architect re-runs (including clarification loops and gate loop-backs)
+  use Fable unless explicitly downgraded. Runtime escalation is supported: at GATE 1 or GATE 2,
+  request a deeper plan and the orchestrator will switch to Fable for subsequent runs. All
+  other agents (Coder, QA, Reviewer, Documenter) remain unchanged.
+- **Complex mode failure handling** — Fable 5 is entitlement- and credit-gated. In attended `/pm`
+  runs, if Fable becomes unavailable, the pipeline pauses and offers a choice: retry with Fable
+  or continue on Opus 4.8. In unattended `/pm-auto` runs, the pipeline aborts and disarms
+  permissionless mode immediately (rather than waiting indefinitely) so the run does not block
+  with the flag armed. See the README's "Fable availability" subsection for details.
+
+### Changed
+
+- `architect` agent model reverted from `claude-opus-5` to `claude-opus-4-8`. The previous upgrade
+  in v0.3.1 provided improved reasoning but also increased cost and latency. Complex mode now
+  offers a way to access Fable 5 explicitly when depth is needed without making it the default.
+  The architect now pins the full version ID (`claude-opus-4-8`) rather than the `opus` alias to
+  ensure stability across future harness changes.
+- `pm.md` command clarified to use `$TASK` (the parsed, flag-stripped task) instead of raw
+  `$ARGUMENTS` in all pipeline steps. This cleanup was necessary to properly implement complex
+  mode's flag parsing but has no user-visible effect on existing workflows.
+
 ## [0.3.2] - 2026-07-28
 
 ### Fixed

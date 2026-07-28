@@ -127,6 +127,8 @@ Fable 5 is entitlement- and credit-gated. If the Architect call fails or a conse
 - **`pm` (attended):** The pipeline pauses and reports what happened. Reply `Retry` to try Fable again, or `Standard` to continue on Opus 4.8.
 - **`pm-auto` (unattended):** The pipeline aborts and disarms permissionless mode immediately. Re-run without `--complex` or resolve Fable availability first.
 
+**Verification note:** The model override fails silently — if it does not take, the Architect runs on Opus 4.8 and produces a perfectly good plan, indistinguishable at a glance. The "Complex mode: …" announcement reports intent, not outcome. To verify which model actually ran, check the per-session transcript sidecars: `~/.claude/projects/<project-slug>/<session-id>/subagents/agent-*.jsonl`. Each assistant entry records `.message.model`. This is an internal format verified against Claude Code 2.1.220 only and should be used for post-hoc QA, not as an in-run indicator.
+
 ## Permissionless mode deny list
 
 > **Note:** Bash deny-listing is pattern matching — a speed bump against careless agent behaviour, not containment. It is trivially evaded by wrapper scripts, compound commands, indirection, and subprocesses that do the same work via a language runtime. The only genuinely enforced rule is `path-escape`, which resolves and boundary-checks rather than pattern-matches. For real containment, use OS-level sandboxing. Do not treat the deny list as a security boundary.
