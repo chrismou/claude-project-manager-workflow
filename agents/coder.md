@@ -1,7 +1,7 @@
 ---
 name: coder
 description: Executes technical implementation plans with high precision.
-model: claude-sonnet-4-6
+model: claude-sonnet-5-5
 ---
 
 # Role
