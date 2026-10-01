@@ -28,7 +28,22 @@ Rules that matter:
 Use `TASK` — never the raw "$ARGUMENTS" — everywhere the pipeline below refers to the task.
 
 If `COMPLEX_MODE` is true, state this once, before Phase 1:
-> Complex mode: the architect will run on Fable 5. All other agents are unchanged.
+> Complex mode: the architect and QA will run on Fable 5, and the coder and reviewer on Opus. The documenter is unchanged.
+
+### Complex-mode model overrides
+
+When `COMPLEX_MODE` is true, pass the Agent tool's `model` parameter on every call to these agents:
+
+| Agent       | `model` |
+| ----------- | ------- |
+| `architect` | `fable` |
+| `coder`     | `opus`  |
+| `qa-tester` | `fable` |
+| `reviewer`  | `opus`  |
+
+- This applies to **every** invocation in the session, including clarification re-runs, fix and re-verification loops, and loop-backs from GATE 1 / GATE 2. `COMPLEX_MODE` is sticky once set.
+- When `COMPLEX_MODE` is false, omit the `model` parameter entirely so each agent runs on its definition default. Do not pass an alias in standard mode — aliases are not version-pinned.
+- The `documenter` always runs on its definition default.
 
 ## MANDATORY PIPELINE
 
@@ -42,31 +57,35 @@ You are running a 3-phase pipeline (5 underlying agents). Complete every phase i
 ### Phase 1: Plan
 
 - **ARCHITECT:** Call 'architect' to analyze "$TASK". It will write a plan and return a `CLARIFICATIONS_NEEDED:` block followed by `PLAN_PATH: ...`.
-  - If `COMPLEX_MODE` is true, pass the Agent tool's `model` parameter as `fable` on this call.
-  - If `COMPLEX_MODE` is false, omit the `model` parameter entirely so the architect runs on its definition default (`claude-opus-4-8`). Do not pass `opus` — the alias is not version-pinned.
-  - This applies to **every** ARCHITECT invocation in the session, including clarification re-runs and loop-backs from GATE 1 / GATE 2. `COMPLEX_MODE` is sticky once set.
-- **COMPLEX-MODE FAILURE HANDLING** _(applies only when `COMPLEX_MODE` is true, on every ARCHITECT invocation including clarification re-runs and loop-backs):_
-  Fable 5 is entitlement- and credit-gated. The architect call may fail, stall on a consent
+  - Apply the complex-mode model overrides above (`fable` for the architect when `COMPLEX_MODE` is true; otherwise no `model` parameter, so it runs on its definition default, `claude-opus-5-5`).
+- **COMPLEX-MODE FAILURE HANDLING** _(applies only when `COMPLEX_MODE` is true, on every call that passes `model: fable` — ARCHITECT and QA — including clarification re-runs, re-verification loops, and loop-backs):_
+  Fable 5 is entitlement- and credit-gated. An architect or QA call may fail, stall on a consent
   prompt, or report that Fable is unavailable or out of credits. If that happens:
 
   - **If this run did NOT arm a permissionless flag file** (i.e. it was invoked as `pm`, attended):
-    **PAUSE and wait for the user.** Report exactly what happened and what is needed:
-    > Complex mode could not start the architect on Fable 5. Resolve the prompt above (or run
-    > `/model` to check availability), then reply **Retry** to try Fable again, or **Standard** to
-    > continue on Opus 4.8.
-    Do not silently downgrade to Opus 4.8, and do not proceed to Phase 2. Wait for the reply.
+    **PAUSE and wait for the user.** Report exactly what happened and what is needed, naming the
+    agent that failed:
+    > Complex mode could not start the [architect / QA] on Fable 5. Resolve the prompt above (or
+    > run `/model` to check availability), then reply **Retry** to try Fable again, or
+    > **Standard** to continue on Opus 5.5.
+    Do not silently downgrade to Opus 5.5, and do not continue the pipeline. Wait for the reply.
+    On **Standard**, re-run that call without the `model` parameter and keep doing so for that
+    agent for the rest of the session. The other complex-mode overrides are unaffected.
 
   - **If this run DID arm a permissionless flag file** (i.e. it was invoked via `pm-auto`,
     unattended): **ABORT — and disarm first.** In this order:
     1. Delete the flag file immediately:
        `rm -f "$(git rev-parse --show-toplevel)/.claude/.pm-permissionless.json"`
-    2. Then report the abort:
-       > Aborted: complex mode could not start the architect on Fable 5, and this is an unattended
-       > run with nobody available to resolve it. Permissionless mode has been disarmed. Re-run
-       > without `--complex`, or resolve Fable availability and try again.
-    3. Stop. Do not fall back to Opus 4.8, and do not continue the pipeline.
+    2. Then report the abort, naming the agent that failed:
+       > Aborted: complex mode could not start the [architect / QA] on Fable 5, and this is an
+       > unattended run with nobody available to resolve it. Permissionless mode has been
+       > disarmed. Re-run without `--complex`, or resolve Fable availability and try again.
 
-    The disarm MUST happen before the report, and MUST happen even though this failure occurs in
+       If the failure was on a QA call, also state that the coder's changes are in the working
+       tree and have not passed QA or review.
+    3. Stop. Do not fall back to Opus 5.5, and do not continue the pipeline.
+
+    The disarm MUST happen before the report, and MUST happen even when this failure occurs in
     Phase 1 — well before the pipeline's normal disarm points at GATE 2 and DONE. Leaving the flag
     armed on an aborted run would leave permissionless mode live for the remainder of its 2-hour
     expiry window.
@@ -87,14 +106,15 @@ You are running a 3-phase pipeline (5 underlying agents). Complete every phase i
 
 The coder, qa-tester, and reviewer agents iterate among themselves. **Do NOT ask the user for confirmation at any point inside this phase until the gate at the end.**
 
+- **MODELS:** Apply the complex-mode model overrides to every 'coder', 'qa-tester', and 'reviewer' call in this phase, including fix and re-verification loops. COMPLEX-MODE FAILURE HANDLING (Phase 1) applies to every 'qa-tester' call.
 - **CODER:** Call 'coder' with the plan path. Wait for `STAGE_COMPLETE: coder` in its response.
-- **QA:** Immediately call 'qa-tester' to verify the work. Wait for `STAGE_COMPLETE: qa` or `QA_FAILED:` in its response.
+- **QA:** Immediately call 'qa-tester' with the plan path to verify the work. Wait for `STAGE_COMPLETE: qa` or `QA_FAILED:` in its response.
   - If `QA_FAILED:` — call 'coder' to fix the reported issues, then re-run 'qa-tester'. Repeat until `STAGE_COMPLETE: qa`. (No user gate.)
 - **REVIEW:** On `STAGE_COMPLETE: qa`, immediately call 'reviewer' to audit for security/performance/style. (No user gate.)
   - If changes required — call 'coder' to apply them, then re-run 'qa-tester' and 'reviewer'. Repeat until `APPROVED`.
   - On `APPROVED` — Implement has converged.
 - **DISARM (conditional):** If you armed a permissionless flag file at the start of this session (i.e., this run was invoked via `pm-auto`) AND `UNATTENDED_SCOPE` is `"Implementation only"` or unset, delete it now: `rm -f "$(git rev-parse --show-toplevel)/.claude/.pm-permissionless.json"`. If no flag was armed in this session, skip this step entirely — no tool call, no output.
-- **GATE 2:** Present a summary of the full implementation (files changed, QA result, review result), then:
+- **GATE 2:** Present a summary of the full implementation (files changed, QA result, review result, and anything QA listed under `Not verified:`), then:
   - _(Note: Unattended phrasing alone NEVER authorizes skipping GATE 2 — only an explicit "Entire process" selection at the UNATTENDED-SCOPE GATE does.)_
   - If `UNATTENDED_SCOPE == "Entire process"` — record the GATE 2 summary and proceed automatically to Phase 3 (Document). **This is the only path that may auto-proceed past GATE 2.**
   - Otherwise (including `UNATTENDED_SCOPE == "Implementation only"` or `UNATTENDED_SCOPE` unset) — output exactly:

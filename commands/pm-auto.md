@@ -68,9 +68,10 @@ Confirm to the user:
 >   rules will NOT fire during this run. (Omit this bullet if ACTIVE_EXEMPTIONS is empty.)
 > - Existing `deny` / `ask` rules in your settings still apply — the hook cannot override them.
 > - A deny-list match in an unattended run **pauses indefinitely** rather than failing.
-> - If `--complex` was passed, the architect will run on Fable 5. Fable is entitlement- and
->   credit-gated. If it is unavailable or out of credits in this unattended run, the pipeline
->   will abort and disarm permissionless mode automatically rather than waiting for input.
+> - If `--complex` was passed, the architect and QA will run on Fable 5, and the coder and
+>   reviewer on Opus. Fable is entitlement- and credit-gated. If it is unavailable or out of
+>   credits in this unattended run, the pipeline will abort and disarm permissionless mode
+>   automatically rather than waiting for input.
 
 ## Pipeline
 

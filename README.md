@@ -10,7 +10,7 @@ Running `/chrismou-project-manager:pm <task description>` spins up a coordinated
 
 1. **Architect** — analyses your codebase, writes a technical design doc to `plans/YYYYMMDD-slug.md`, then pauses so you can review and edit it before anything is touched.
 2. **Coder** — executes the plan precisely: creates/modifies files, runs syntax checks, and self-corrects minor blockers.
-3. **QA** — reviews the implementation for bugs, edge cases, missing error handling, and test coverage gaps. If it finds issues, it sends work back to the Coder.
+3. **QA** — reviews the implementation for bugs, edge cases, missing error handling, and test coverage gaps, runs the project's build and CI checks, and exercises the changed behaviour rather than only reading it. Anything it could not run is listed as not verified. If it finds issues, it sends work back to the Coder.
 4. **Reviewer** — audits for security issues, performance problems, and style consistency. Loops back to the Coder if changes are required.
 5. **Documenter** — updates `README.md`, docstrings, and `CHANGELOG.md` to reflect the changes made.
 
@@ -107,7 +107,7 @@ Or, to run with auto-approved tool calls (except the deny list):
 
 ### Complex mode
 
-Both commands accept a `--complex` flag as the first argument, which escalates the Architect agent to Fable 5 for deeper analysis on demanding tasks. All other agents are unchanged.
+Both commands accept a `--complex` flag as the first argument, which moves the pipeline up a model tier for demanding tasks: the Architect and QA run on Fable 5, and the Coder and Reviewer run on Opus. The Documenter is unchanged. See the [Agents](#agents) table for the models used in each mode.
 
 ```
 /chrismou-project-manager:pm --complex <description of your task>
@@ -116,18 +116,20 @@ Both commands accept a `--complex` flag as the first argument, which escalates t
 
 The flag must be the first token on the command line, exact and case-sensitive. A task starting with the ordinary word "complex" (e.g. "complex refactor of the auth module") is not affected — only the literal `--complex` prefix activates the mode.
 
-When active, the orchestrator announces "Complex mode: the architect will run on Fable 5" before Phase 1 starts, and passes `model: fable` on every Architect call for the session. The mode is sticky — once set, it applies to all Architect re-runs including clarification loops and gate-loopbacks.
+When active, the orchestrator announces "Complex mode: the architect and QA will run on Fable 5, and the coder and reviewer on Opus" before Phase 1 starts, and passes `model: fable` on every Architect and QA call and `model: opus` on every Coder and Reviewer call for the session. The mode is sticky — once set, it applies to all re-runs including clarification loops, fix loops, and gate-loopbacks.
 
-**Runtime escalation:** If you start without `--complex` and then decide at GATE 1 or GATE 2 that you want a deeper plan, say so in your feedback. The orchestrator will switch to Fable for subsequent Architect runs.
+The per-call override only accepts aliases, so the complex-mode Coder and Reviewer run on whichever Opus version Claude Code currently resolves `opus` to. Standard-mode models are pinned by full version ID.
+
+**Runtime escalation:** If you start without `--complex` and then decide at GATE 1 or GATE 2 that you want a deeper plan, say so in your feedback. The orchestrator will switch to the complex-mode models for subsequent agent runs.
 
 **Fable availability:**
 
-Fable 5 is entitlement- and credit-gated. If the Architect call fails or a consent prompt appears:
+Fable 5 is entitlement- and credit-gated. If an Architect or QA call fails or a consent prompt appears:
 
-- **`pm` (attended):** The pipeline pauses and reports what happened. Reply `Retry` to try Fable again, or `Standard` to continue on Opus 4.8.
-- **`pm-auto` (unattended):** The pipeline aborts and disarms permissionless mode immediately. Re-run without `--complex` or resolve Fable availability first.
+- **`pm` (attended):** The pipeline pauses and reports what happened. Reply `Retry` to try Fable again, or `Standard` to continue that agent on Opus 5.5.
+- **`pm-auto` (unattended):** The pipeline aborts and disarms permissionless mode immediately. If the failure was on a QA call, the Coder's changes are left in the working tree without having passed QA or review. Re-run without `--complex` or resolve Fable availability first.
 
-**Verification note:** The model override fails silently — if it does not take, the Architect runs on Opus 4.8 and produces a perfectly good plan, indistinguishable at a glance. The "Complex mode: …" announcement reports intent, not outcome. To verify which model actually ran, check the per-session transcript sidecars: `~/.claude/projects/<project-slug>/<session-id>/subagents/agent-*.jsonl`. Each assistant entry records `.message.model`. This is an internal format verified against Claude Code 2.1.220 only and should be used for post-hoc QA, not as an in-run indicator.
+**Verification note:** The model override fails silently — if it does not take, the agent runs on its standard-mode model and produces perfectly good output, indistinguishable at a glance. The "Complex mode: …" announcement reports intent, not outcome. To verify which model actually ran, check the per-session transcript sidecars: `~/.claude/projects/<project-slug>/<session-id>/subagents/agent-*.jsonl`. Each assistant entry records `.message.model`. This is an internal format verified against Claude Code 2.1.220 only and should be used for post-hoc QA, not as an in-run indicator.
 
 ## Permissionless mode deny list
 
@@ -288,13 +290,13 @@ If you want to add an additional project-specific guard on a deployment script:
 
 ## Agents
 
-| Agent      | Model             | Role                                                                         |
-| ---------- | ----------------- | ---------------------------------------------------------------------------- |
-| architect  | claude-opus-4-8   | Writes technical design docs, surfaces clarifications and open questions      |
-| coder      | claude-sonnet-4-6 | Implements the plan                                                          |
-| qa-tester  | claude-sonnet-4-6 | Tests for bugs, edge cases, coverage gaps                                    |
-| reviewer   | claude-sonnet-4-6 | Security, performance, and style audit                                       |
-| documenter | claude-haiku-4-5  | Updates docs and CHANGELOG                                                   |
+| Agent      | Model             | `--complex` model | Role                                                                         |
+| ---------- | ----------------- | ----------------- | ---------------------------------------------------------------------------- |
+| architect  | claude-opus-5-5   | fable             | Writes technical design docs, surfaces clarifications and open questions      |
+| coder      | claude-sonnet-5-5 | opus              | Implements the plan                                                          |
+| qa-tester  | claude-opus-5-5   | fable             | Runs tests, build and CI checks, exercises the change, finds bugs and gaps   |
+| reviewer   | claude-sonnet-5-5 | opus              | Security, performance, and style audit                                       |
+| documenter | claude-haiku-4-5  | claude-haiku-4-5  | Updates docs and CHANGELOG                                                   |
 
 ## Project structure
 

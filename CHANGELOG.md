@@ -10,27 +10,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Complex mode** — pass `--complex` as the first argument to either `/pm` or `/pm-auto` to
-  escalate the Architect agent to Fable 5 for deeper analysis on demanding tasks. Example:
+  move the pipeline up a model tier for demanding tasks: the Architect and QA run on Fable 5,
+  and the Coder and Reviewer run on Opus. The Documenter is unchanged. Example:
   `/chrismou-project-manager:pm --complex Rebuild the authentication layer`. The flag is
   exact and case-sensitive (`--Complex` and `complex` alone do not activate it); a task
   starting with the ordinary word "complex" is unaffected. The mode is sticky within a
-  session — once set, all Architect re-runs (including clarification loops and gate loop-backs)
-  use Fable unless explicitly downgraded. Runtime escalation is supported: at GATE 1 or GATE 2,
-  request a deeper plan and the orchestrator will switch to Fable for subsequent runs. All
-  other agents (Coder, QA, Reviewer, Documenter) remain unchanged.
+  session — once set, all agent re-runs (including clarification loops, fix loops, and gate
+  loop-backs) use the complex-mode models. Runtime escalation is supported: at GATE 1 or GATE 2,
+  request a deeper plan and the orchestrator will switch to the complex-mode models for
+  subsequent runs.
 - **Complex mode failure handling** — Fable 5 is entitlement- and credit-gated. In attended `/pm`
-  runs, if Fable becomes unavailable, the pipeline pauses and offers a choice: retry with Fable
-  or continue on Opus 4.8. In unattended `/pm-auto` runs, the pipeline aborts and disarms
-  permissionless mode immediately (rather than waiting indefinitely) so the run does not block
-  with the flag armed. See the README's "Fable availability" subsection for details.
+  runs, if Fable becomes unavailable on an Architect or QA call, the pipeline pauses and offers
+  a choice: retry with Fable or continue that agent on Opus 5.5. In unattended `/pm-auto` runs,
+  the pipeline aborts and disarms permissionless mode immediately (rather than waiting
+  indefinitely) so the run does not block with the flag armed. See the README's "Fable
+  availability" subsection for details.
+- QA now runs the project's build and CI checks and exercises the changed behaviour (routes,
+  pages, commands, and the user flows in the plan) instead of only reading the code and running
+  the test suite. Anything it could not run is reported under a `Not verified:` heading, which
+  is surfaced in the GATE 2 summary.
 
 ### Changed
 
-- `architect` agent model reverted from `claude-opus-5` to `claude-opus-4-8`. The previous upgrade
-  in v0.3.1 provided improved reasoning but also increased cost and latency. Complex mode now
-  offers a way to access Fable 5 explicitly when depth is needed without making it the default.
-  The architect now pins the full version ID (`claude-opus-4-8`) rather than the `opus` alias to
-  ensure stability across future harness changes.
+- Standard-mode agent models updated, all pinned by full version ID rather than alias to ensure
+  stability across future harness changes:
+  - `architect`: `claude-opus-5` to `claude-opus-5-5`.
+  - `coder`: `claude-sonnet-4-6` to `claude-sonnet-5-5`.
+  - `qa-tester`: `sonnet` alias to `claude-opus-5-5`, so the correctness gate is stronger than
+    the Coder it checks.
+  - `reviewer`: `claude-sonnet-4-6` to `claude-sonnet-5-5`.
 - `pm.md` command clarified to use `$TASK` (the parsed, flag-stripped task) instead of raw
   `$ARGUMENTS` in all pipeline steps. This cleanup was necessary to properly implement complex
   mode's flag parsing but has no user-visible effect on existing workflows.
